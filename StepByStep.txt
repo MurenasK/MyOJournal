@@ -1,0 +1,12 @@
+
+GIGA PROJECT KasMuTrain
+
+Paskirtis?
+Rinkti treniruociu informacija
+Tikslas kad vestusi kaip grafikas kuris parodytu kiek ir ko buvo padaryta
+
+
+Zingsniai
+
+1. Suinstaliuoti visa reikiama sistema (npm, expo, expo-router, api)
+2. Susikurti iskarto puslapiu kieki (1. Pagrindinis, 2. Treniruociu logai, 3. Statistikos, 4. Planas)
