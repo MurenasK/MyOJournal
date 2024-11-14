@@ -1,48 +1,49 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { TextInput, Button, View, StyleSheet, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import MultiSelect from './MultiSelect'; // Assuming MultiSelect is set up to return selected values
-import RNFS from 'react-native-fs'; // React Native FS for local file handling
+import SQLite from 'react-native-sqlite-storage';
+import MultiSelect from './MultiSelect';
+
+// Open or create a SQLite database
+const dbPath = 'activity.db';
+const db = SQLite.openDatabase({ name: dbPath, location: 'default' });
 
 export default function InputForm() {
-  const { control, handleSubmit, setValue } = useForm();
+  const { control, handleSubmit } = useForm();
 
-  const onSubmit = async (data) => {
-    // Prepare the form data for submission
-    const formJSON = {
-      activityName: data.activityName,
-      km: data.km,
-      AvgHR: data.AvgHR,
-      climb: data.climb,
-      runningType: data.runningType, // This should be an array from MultiSelect
-    };
+  // Create table on app load (useEffect)
+  useEffect(() => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS activities (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          activityName TEXT,
+          km TEXT,
+          avgHR TEXT,
+          climb TEXT,
+          time TEXT
+        )`
+      );
+    });
+  }, []);
 
-    try {
-      // Define the path for the local JSON file
-      const path = RNFS.DocumentDirectoryPath + '/exercises.json';
+  const onSubmit = (data) => {
+    const { activityName, km, AvgHR, climb, time } = data;
 
-      // Check if the file exists
-      const fileExists = await RNFS.exists(path);
-      let exercises = [];
-
-      // If the file exists, read its content and parse it into the exercises array
-      if (fileExists) {
-        const fileContent = await RNFS.readFile(path);
-        exercises = JSON.parse(fileContent);
-      }
-
-      // Append the new form data to the exercises array
-      exercises.push(formJSON);
-
-      // Write the updated data back to the file
-      await RNFS.writeFile(path, JSON.stringify(exercises, null, 2));
-
-      // Show success message
-      Alert.alert('Success', 'Data has been successfully saved to the file!');
-    } catch (error) {
-      console.error('Error saving file:', error);
-      Alert.alert('Error', 'An error occurred while trying to save the data.');
-    }
+    // Insert form data into the SQLite table
+    db.transaction((tx) => {
+      tx.executeSql(
+        'INSERT INTO activities (activityName, km, avgHR, climb, time) VALUES (?, ?, ?, ?, ?)',
+        [activityName, km, AvgHR, climb, time],
+        () => {
+          Alert.alert('Success', 'Activity data has been saved!');
+        },
+        (error) => {
+          console.error('Error saving data:', error);
+          Alert.alert('Error', 'Failed to save activity data.');
+        }
+      );
+    });
   };
 
   return (
@@ -91,9 +92,19 @@ export default function InputForm() {
           />
         )}
       />
+      <Controller
+        control={control}
+        name="time"
+        render={({ field }) => (
+          <TextInput
+            {...field}
+            style={styles.input}
+            placeholder="Sukilimas"
+          />
+        )}
+      />
       <MultiSelect />
-
-      <Button title="Submit" onPress={handleSubmit(onSubmit)} />
+      <Button style={styles.buttonBox} title="Submit" onPress={handleSubmit(onSubmit)} />
     </View>
   );
 }
@@ -101,14 +112,25 @@ export default function InputForm() {
 const styles = StyleSheet.create({
   container: {
     gap: 30,
-    padding: 20,
   },
   input: {
-    width: '100%',
+    width: 200,
     height: 50,
     backgroundColor: '#E9ECEF',
     borderRadius: 12,
-    marginBottom: 15,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  buttonBox: {
+    width: 200,
+    height: 50,
+    backgroundColor: '#E9ECEF',
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 12,
   },
 });

@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import { Link } from 'expo-router';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 export default function Index() {
   return (

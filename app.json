@@ -2,6 +2,7 @@
   "expo": {
     "name": "O-journal",
     "slug": "O-journal",
+    "jsEngine": "jsc",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "",
